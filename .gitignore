@@ -1,0 +1,22 @@
+# Python
+__pycache__/
+*.py[cod]
+
+# Jupyter
+.ipynb_checkpoints/
+*/.ipynb_checkpoints/*
+
+# Conda / envs
+.env
+.venv
+venv/
+env/
+conda-meta/
+
+# Data
+data/intel_dataset/
+!data/.gitkeep
+
+# OS files
+.DS_Store
+Thumbs.db
