@@ -138,7 +138,8 @@ def predict(model, loader, device):
     images,_ = next(iter(loader))
     images = images.to(device)
     outputs = model(images)
-    conf,preds = outputs.max(1)
+    prob = torch.softmax(outputs, dim=1)
+    conf,preds = prob.max(1)
 
     for i in range(len(images)):
         img.append(images[i].cpu())
@@ -173,7 +174,7 @@ def main(test_dir = '../data/intel_dataset/seg_pred/seg_pred', checkpoint_path='
         img = show(pred_images[i])
         ax.imshow(img)
         ax.axis('off')
-        ax.set_title(f'Class: {classes[pred_labels[i]]}\nConfidence: {confidence[i]}')
+        ax.set_title(f'Class: {classes[pred_labels[i]]}\nConfidence: {confidence[i] * 100:.2f}%')
     fig.suptitle("Predictions", fontsize = 16)
     fig.tight_layout()
 
