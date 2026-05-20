@@ -21,6 +21,9 @@ The dataset contains six scene categories:
 - Sea.
 - Street.
 
+## Image Sample
+<img width="736" height="737" alt="image_samples" src="https://github.com/user-attachments/assets/43660945-df02-480e-aff0-ffdfcc9d81a0" />
+
 ## Project Structure
 
 ```text
@@ -64,6 +67,24 @@ The current notebook trains an image classification model in PyTorch using separ
 - Input Image size: 128x128
 - Notes: Common confusion between mountain and glacier
 ```
+
+## Graphs
+### Loss vs Epochs
+<img width="1055" height="652" alt="loss_vs_epochs" src="https://github.com/user-attachments/assets/e32626e7-a015-4c23-a4ff-de6e442a8132" />
+
+### Accuracy vs Epochs
+<img width="1055" height="653" alt="accuracy_vs_epochs" src="https://github.com/user-attachments/assets/d05dad20-f5db-4879-977b-7c8d0128362f" />
+
+
+## Classification Report
+<img width="540" height="322" alt="classification_report" src="https://github.com/user-attachments/assets/fc1571be-bb6e-4ed4-9e1e-6ecc6733ffd2" />
+
+## Confusion Matrix
+<img width="702" height="616" alt="confusion_matrix" src="https://github.com/user-attachments/assets/d223d998-fbe9-4b77-8cd3-771c434e784e" />
+
+## Predictions on Unlabeled Data
+<img width="751" height="768" alt="sample_predictions" src="https://github.com/user-attachments/assets/d5a8519e-e862-4c6c-a303-6ac733cc30fd" />
+
 
 ## How to Run
 
