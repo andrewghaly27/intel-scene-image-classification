@@ -146,7 +146,7 @@ def predict(model, loader, device):
 
     return img, preds, conf
 
-
+# Un-normalize images for visualization
 def show(image):
     img = image.numpy()
     img = img.transpose(1,2,0)
