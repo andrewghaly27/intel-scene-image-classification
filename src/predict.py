@@ -5,6 +5,7 @@ import torch
 import torch.nn as nn
 from torchvision import transforms
 from PIL import Image
+from pathlib import Path
 from torch.utils.data import DataLoader, Dataset
 
 CLASSES = ['buildings', 'forest', 'glacier', 'mountain', 'sea', 'street']
@@ -157,8 +158,11 @@ def show(image):
     return img
 
 
-def main(test_dir = '../data/intel_dataset/seg_pred/seg_pred', checkpoint_path='../models/best_checkpoint_intel.pth',batch_size=64):
+def main(test_dir = '../data/intel_dataset/seg_pred/seg_pred', batch_size=64):
     device = get_device()
+    
+    BASE_DIR = Path(__file__).resolve().parent.parent
+    checkpoint_path = BASE_DIR / "models" / "best_checkpoint_intel.pth"
     
     test_ds = IntelPredictDataset(test_dir,transform=get_predict_transform())
     test_dl = DataLoader(test_ds,batch_size=batch_size,shuffle=False,num_workers=2)
@@ -177,6 +181,7 @@ def main(test_dir = '../data/intel_dataset/seg_pred/seg_pred', checkpoint_path='
         ax.set_title(f'Class: {classes[pred_labels[i]]}\nConfidence: {confidence[i] * 100:.2f}%')
     fig.suptitle("Predictions", fontsize = 16)
     fig.tight_layout()
+    plt.show()
 
 
 if __name__ == '__main__':
