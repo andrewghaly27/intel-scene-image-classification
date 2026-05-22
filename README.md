@@ -24,9 +24,6 @@ The dataset contains six scene categories:
 ## Image Sample
 <img width="736" height="737" alt="image_samples" src="https://github.com/user-attachments/assets/43660945-df02-480e-aff0-ffdfcc9d81a0" />
 
-## Image Sample
-<img width="736" height="737" alt="image_samples" src="https://github.com/user-attachments/assets/43660945-df02-480e-aff0-ffdfcc9d81a0" />
-
 ## Project Structure
 
 ```text
@@ -108,7 +105,7 @@ cd intel-scene-image-classification
 python -m venv .venv
 source .venv/bin/activate  # On Windows: .venv\\Scripts\\activate
 pip install -r requirements.txt
-jupyter notebook notebooks/intel_classification.ipynb
+jupyter notebook notebooks/intel_classifier.ipynb
 ```
 
 ## Deployment Architecture
@@ -137,6 +134,7 @@ http://127.0.0.1:8000
 ```text
 http://127.0.0.1:8000/docs
 ```
+<img width="1918" height="968" alt="Screenshot 2026-05-22 212808" src="https://github.com/user-attachments/assets/cb5d8b2e-21e4-4f49-9dab-8de1a25fb947" />
 
 ## Streamlit Frontend
 
@@ -146,8 +144,10 @@ The Streamlit frontend provides the web interface for image upload and predictio
 ```text
 http://localhost:8501
 ```
-
+<img width="1920" height="1781" alt="Streamlit" src="https://github.com/user-attachments/assets/bc12d35b-1ff1-4df0-8c31-7f26ca24c7c6" />
 The frontend sends uploaded images to the FastAPI backend and displays the returned predictions.
+<img width="981" height="575" alt="Screenshot 2026-05-22 213054" src="https://github.com/user-attachments/assets/80adbcf2-27f6-43d8-9157-444480e20c06" />
+
 
 ## API Endpoints
 
