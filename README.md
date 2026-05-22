@@ -24,6 +24,9 @@ The dataset contains six scene categories:
 ## Image Sample
 <img width="736" height="737" alt="image_samples" src="https://github.com/user-attachments/assets/43660945-df02-480e-aff0-ffdfcc9d81a0" />
 
+## Image Sample
+<img width="736" height="737" alt="image_samples" src="https://github.com/user-attachments/assets/43660945-df02-480e-aff0-ffdfcc9d81a0" />
+
 ## Project Structure
 
 ```text
@@ -37,7 +40,12 @@ The dataset contains six scene categories:
 ├── src/
 │   ├── train.py
 │   ├── evaluate.py
-│   └── predict.py
+│   ├── predict.py
+│   └── model.py
+├── backend/
+│   └── main.py
+├── frontend/
+│   └── app.py
 ├── models/
 │   └── best_checkpoint_intel.pth
 ├── reports/
@@ -102,3 +110,94 @@ source .venv/bin/activate  # On Windows: .venv\\Scripts\\activate
 pip install -r requirements.txt
 jupyter notebook notebooks/intel_classification.ipynb
 ```
+
+## Deployment Architecture
+
+This project uses a two-part deployment setup:
+
+- **FastAPI backend** for model inference.
+- **Streamlit frontend** for the user interface.
+
+Workflow:
+1. The user uploads an image in the Streamlit app.
+2. The Streamlit app sends the image to the FastAPI backend.
+3. The FastAPI backend preprocesses the image, loads the trained model checkpoint, and returns the top predictions.
+4. The Streamlit app displays the predicted class and confidence scores.
+
+## FastAPI Backend
+
+The FastAPI backend is responsible for serving the trained model through an inference API.
+
+**Local backend URL**
+```text
+http://127.0.0.1:8000
+```
+
+**Interactive API docs**
+```text
+http://127.0.0.1:8000/docs
+```
+
+## Streamlit Frontend
+
+The Streamlit frontend provides the web interface for image upload and prediction display.
+
+**Local frontend URL**
+```text
+http://localhost:8501
+```
+
+The frontend sends uploaded images to the FastAPI backend and displays the returned predictions.
+
+## API Endpoints
+
+### `GET /`
+Health check endpoint.
+
+**Example response**
+```json
+{
+  "message": "Intel Scene Classification API is running"
+}
+```
+
+### `POST /predict`
+Accepts an uploaded image file and returns the top predicted scene classes with confidence scores.
+
+**Example response**
+```json
+{
+  "predictions": [
+    {
+      "class_name": "glacier",
+      "confidence": 0.8421
+    },
+    {
+      "class_name": "mountain",
+      "confidence": 0.1134
+    },
+    {
+      "class_name": "sea",
+      "confidence": 0.0312
+    }
+  ]
+}
+```
+
+## Run Locally
+
+After cloning the repository and installing dependencies, run the backend and frontend in two separate terminals.
+
+### 1. Start the FastAPI backend
+```bash
+uvicorn backend.main:app --reload
+```
+
+### 2. Start the Streamlit frontend
+```bash
+streamlit run frontend/app.py
+```
+
+### 3. Open the apps
+- FastAPI docs: `http://127.0.0.1:8000/docs`
+- Streamlit UI: `http://localhost:8501`

@@ -1,12 +1,13 @@
 import os
+import io
 import numpy as np
 import matplotlib.pyplot as plt
 import torch
-import torch.nn as nn
 from torchvision import transforms
 from PIL import Image
 from pathlib import Path
 from torch.utils.data import DataLoader, Dataset
+from src.model import Classifier
 
 CLASSES = ['buildings', 'forest', 'glacier', 'mountain', 'sea', 'street']
 IMAGE_SIZE = 128
@@ -39,79 +40,6 @@ class IntelPredictDataset(Dataset):
 
         # Returning img_name helps identify which file matches which prediction
         return image, img_name
-    
-
-# Building Model
-class Classifier(nn.Module):
-    def __init__(self):
-        super(Classifier,self).__init__()
-        # 128 x 128 -> 64 x 64
-        self.block1 = nn.Sequential(
-            nn.Conv2d(3,64,kernel_size=3,padding='same',bias=False),
-            nn.BatchNorm2d(64),
-            nn.ReLU(inplace=True),
-            nn.Conv2d(64,64,kernel_size=3,padding='same',bias=False),
-            nn.BatchNorm2d(64),
-            nn.ReLU(inplace=True),
-            nn.MaxPool2d(kernel_size=2,stride=2,padding=0)
-        )
-        # 64 x 64 -> 32 x 32
-        self.block2 = nn.Sequential(
-            nn.Conv2d(64,128,kernel_size=3,padding='same',bias=False),
-            nn.BatchNorm2d(128),
-            nn.ReLU(inplace=True),
-            nn.Conv2d(128,128,kernel_size=3,padding='same',bias=False),
-            nn.BatchNorm2d(128),
-            nn.ReLU(inplace=True),
-            nn.MaxPool2d(kernel_size=2,stride=2,padding=0)
-        )
-        # 32 x 32 -> 16 x 16
-        self.block3 = nn.Sequential(
-            nn.Conv2d(128,256,kernel_size=3,padding='same',bias=False),
-            nn.BatchNorm2d(256),
-            nn.ReLU(inplace=True),
-            nn.Conv2d(256,256,kernel_size=3,padding='same',bias=False),
-            nn.BatchNorm2d(256),
-            nn.ReLU(inplace=True),
-            nn.Conv2d(256,256,kernel_size=3,padding='same',bias=False),
-            nn.BatchNorm2d(256),
-            nn.ReLU(inplace=True),
-            nn.MaxPool2d(kernel_size=2,stride=2,padding=0)
-        )
-        # 16 x 16 -> 8 x 8
-        self.block4 = nn.Sequential(
-            nn.Conv2d(256,512,kernel_size=3,padding='same',bias=False),
-            nn.BatchNorm2d(512),
-            nn.ReLU(inplace=True),
-            nn.Conv2d(512,512,kernel_size=3,padding='same',bias=False),
-            nn.BatchNorm2d(512),
-            nn.ReLU(inplace=True),
-            nn.Conv2d(512,512,kernel_size=3,padding='same',bias=False),
-            nn.BatchNorm2d(512),
-            nn.ReLU(inplace=True),
-            nn.MaxPool2d(kernel_size=2,stride=2,padding=0)
-        )
-        self.gap = nn.AdaptiveAvgPool2d((1,1))
-        self.flatten = nn.Flatten()
-        self.classifier = nn.Sequential(
-            nn.Linear(512,1000),
-            nn.ReLU(inplace=True),
-            nn.Dropout(p=0.6),
-            nn.Linear(1000,1000),
-            nn.ReLU(inplace=True),
-            nn.Dropout(p=0.6),
-            nn.Linear(1000,6)
-        )
-
-    def forward(self,x):
-        x=self.block1(x)
-        x=self.block2(x)
-        x=self.block3(x)
-        x=self.block4(x)
-        x=self.gap(x)
-        x=self.flatten(x)
-        x=self.classifier(x)
-        return x
 
 
 def get_predict_transform():
@@ -134,7 +62,6 @@ def load_checkpoint(checkpoint_path, device):
 @torch.no_grad()
 def predict(model, loader, device):
     model.eval()
-    img = []
 
     images,_ = next(iter(loader))
     images = images.to(device)
@@ -142,10 +69,45 @@ def predict(model, loader, device):
     prob = torch.softmax(outputs, dim=1)
     conf,preds = prob.max(1)
 
+    results = []
     for i in range(len(images)):
-        img.append(images[i].cpu())
+        img_cpu = images[i].cpu()
+        confidence = conf[i].cpu()
+        prediction = preds[i].cpu()
+        
+        results.append({
+            'img': img_cpu,
+            'prediction': prediction,
+            'confidence': confidence
+        })
 
-    return img, preds, conf
+    return results
+
+# For API Integration
+@torch.no_grad()
+def predict_pil_image(model, image, device, classes, top_k=3):
+    model.eval()
+    image = image.convert("RGB")
+    transform = get_predict_transform()
+    tensor = transform(image).unsqueeze(0).to(device)
+
+    outputs = model(tensor)
+    probs = torch.softmax(outputs, dim=1)[0]
+    top_probs, top_indices = torch.topk(probs, k=top_k)
+
+    results = []
+    for prob, idx in zip(top_probs.cpu(), top_indices.cpu()):
+        results.append({
+            "class_name": classes[idx.item()],
+            "confidence": prob.item()
+        })
+
+    return results
+
+
+def predict_bytes(model, image_bytes: bytes, device, classes, top_k=3):
+    image = Image.open(io.BytesIO(image_bytes))
+    return predict_pil_image(model, image, device, classes, top_k=top_k)
 
 # Un-normalize images for visualization
 def show(image):
@@ -170,15 +132,18 @@ def main(test_dir = '../data/intel_dataset/seg_pred/seg_pred', batch_size=64):
     model,checkpoint = load_checkpoint(checkpoint_path,device)
     classes = checkpoint.get('class_names',CLASSES)
     
-    pred_images, pred_labels, confidence = predict(model, test_dl, device)
+    results = predict(model, test_dl, device)
     fig = plt.figure(figsize=(6,6))
     n=16
     for i in range(n):
         ax = fig.add_subplot(4,4,i+1)
-        img = show(pred_images[i])
+        img = show(results[i]['img'])
+        pred_idx = results[i]['prediction'].item()
+        conf = results[i]['confidence'].item()
+        
         ax.imshow(img)
         ax.axis('off')
-        ax.set_title(f'Class: {classes[pred_labels[i]]}\nConfidence: {confidence[i] * 100:.2f}%')
+        ax.set_title(f'Class: {classes[pred_idx]}\nConfidence: {conf * 100:.2f}%')
     fig.suptitle("Predictions", fontsize = 16)
     fig.tight_layout()
     plt.show()
@@ -186,3 +151,4 @@ def main(test_dir = '../data/intel_dataset/seg_pred/seg_pred', batch_size=64):
 
 if __name__ == '__main__':
     main()
+
