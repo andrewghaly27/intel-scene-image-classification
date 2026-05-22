@@ -1,6 +1,7 @@
 import numpy as np
 import torch
 import torch.nn as nn
+from pathlib import Path
 from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
 from sklearn.metrics import classification_report, confusion_matrix, ConfusionMatrixDisplay
@@ -138,9 +139,12 @@ def evaluate_model(model, loader, classes, device):
     return accuracy, report, cm
 
 
-def main(val_dir='../data/intel_dataset/seg_test/seg_test', checkpoint_path='../models/best_checkpoint_intel.pth', batch_size=64):
+def main(val_dir='../data/intel_dataset/seg_test/seg_test', batch_size=64):
     device = get_device()
 
+    BASE_DIR = Path(__file__).resolve().parent.parent
+    checkpoint_path = BASE_DIR / "models" / "best_checkpoint_intel.pth"
+    
     val_ds = datasets.ImageFolder(val_dir, transform=get_eval_transform())
     val_dl = DataLoader(
         val_ds,
